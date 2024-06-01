@@ -214,7 +214,7 @@ dependencies = [
  "tokio-util",
  "tracing",
  "typed-builder",
- "winnow 0.6.5",
+ "winnow 0.6.9",
  "yoke",
 ]
 
@@ -508,7 +508,7 @@ dependencies = [
  "pretty_assertions",
  "thiserror",
  "tokio",
- "winnow 0.6.5",
+ "winnow 0.6.9",
  "yoke",
 ]
 
@@ -1229,9 +1229,9 @@ dependencies = [
 
 [[package]]
 name = "winnow"
-version = "0.6.5"
+version = "0.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dffa400e67ed5a4dd237983829e66475f0a4a26938c4b04c21baede6262215b8"
+checksum = "86c949fede1d13936a99f14fafd3e76fd642b556dd2ce96287fbe2e0151bfac6"
 dependencies = [
  "anstream 0.3.2",
  "anstyle",
