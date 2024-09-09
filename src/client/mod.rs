@@ -9,21 +9,26 @@ pub mod connect;
 mod receive;
 pub mod send;
 mod state;
+mod subscriptions;
 
 use std::sync::Arc;
 
 use futures::lock::Mutex;
+use subscriptions::Subscription;
+use subscriptions::Subscriptions;
 
 use self::send::Callbacks;
 use self::send::ClientHandlers;
 use self::state::ConnectState;
 use self::state::SessionState;
+use crate::topic::MqttTopic;
 
 struct InnerClient {
     connection_state: Option<ConnectState>,
     session_state: Option<SessionState>,
     default_handlers: ClientHandlers,
     outstanding_callbacks: Callbacks,
+    subscriptions: Subscriptions,
 }
 
 pub struct MqttClient {
@@ -38,12 +43,22 @@ impl MqttClient {
                 session_state: None,
                 default_handlers: ClientHandlers::default(),
                 outstanding_callbacks: Callbacks::new(),
+                subscriptions: Subscriptions::new(),
             })),
         }
     }
 
     pub fn builder() -> builder::MqttClientBuilder {
         builder::MqttClientBuilder::new()
+    }
+
+    pub async fn subscribe(&self, topic: MqttTopic) -> Subscription {
+        self.inner
+            .lock()
+            .await
+            .subscriptions
+            .create_subscription(topic)
+            .await
     }
 }
 

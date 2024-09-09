@@ -278,6 +278,21 @@ async fn handle_publish(
     inner: &Arc<Mutex<InnerClient>>,
 ) -> Result<(), ()> {
     tracing::trace!("Calling on_publish_recv handler");
-    (inner.lock().await.default_handlers.on_publish_recv)(publish.clone());
-    Ok(())
+    let inner_lock = inner.lock().await;
+    (inner_lock.default_handlers.on_publish_recv)(publish.clone());
+
+    match inner_lock.subscriptions.handle_publish(publish.clone()).await {
+        Ok(Some(())) => {
+            tracing::debug!("Subscription handled publish");
+            Ok(())
+        },
+        Ok(None) => {
+            tracing::debug!("Subscription handled publish");
+            Ok(())
+        }
+        Err(()) => {
+            tracing::warn!("Subscription handler failed");
+            Ok(())
+        }
+    }
 }
