@@ -4,14 +4,19 @@
 //   file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 
+use std::collections::HashMap;
+use std::collections::VecDeque;
+
+use futures::FutureExt;
+use futures::Stream;
+
 use crate::packets::publish::Publish;
 
 type Receiver = tokio::sync::mpsc::Receiver<Publish>;
 type Sender = tokio::sync::mpsc::Sender<Publish>;
 
-use crate::topic::MqttTopic;
-
 use super::pattern::Pattern;
+use super::pattern::PatternFragment;
 
 #[derive(Debug)]
 pub(crate) struct Subscription {
@@ -35,42 +40,106 @@ impl Subscription {
 /// Currently this is not implemented in a efficient way
 pub(crate) struct Subscriptions {
     // naive impl
-    subscriptions: Vec<(Pattern, Sender)>,
+    subscriptions: SubscriptionTopic,
+}
+
+#[derive(Debug, Clone, Default)]
+struct SubscriptionTopic {
+    subscriptions: Vec<Sender>,
+    children: HashMap<PatternFragment, SubscriptionTopic>,
+}
+
+impl SubscriptionTopic {
+    fn add_subscription(&mut self, mut pattern: VecDeque<PatternFragment>, sender: Sender) {
+        match pattern.pop_front() {
+            None => self.subscriptions.push(sender),
+            Some(filter) => self
+                .children
+                .entry(filter)
+                .or_default()
+                .add_subscription(pattern, sender),
+        }
+    }
 }
 
 impl Subscriptions {
     pub(crate) fn new() -> Self {
         Self {
-            subscriptions: Vec::new(),
+            subscriptions: SubscriptionTopic::default(),
         }
     }
 
     pub(crate) async fn create_subscription(&mut self, pattern: Pattern) -> Subscription {
         let (sender, receiver) = tokio::sync::mpsc::channel(10);
-        self.subscriptions.push((pattern, sender));
+        self.subscriptions
+            .add_subscription(pattern.into_inner(), sender);
         Subscription::new(receiver)
     }
 
-    pub(crate) async fn handle_publish(&self, packet: Publish) -> Result<Option<()>, ()> {
-        let topic = MqttTopic::try_from(packet.get().topic_name).unwrap(); // TODO
-        // naive search
-        let Some((_, sender)) = self
-            .subscriptions
-            .iter()
-            .find(|(pattern, _sender)| pattern.matches(&topic))
-        else {
-            return Ok(None);
-        };
+    pub(crate) async fn handle_publish<'s>(&'s self, packet: Publish) -> Result<(), ()> {
+        let topic_name = TopicName::parse_from(packet.get().topic_name);
+        let mut i = topic_name
+            .get_matches(0, &self.subscriptions)
+            .zip(std::iter::repeat(packet));
 
-        if let Err(error) = sender.send(packet).await {
-            tracing::warn!(?error, "Failed to send publish to subscription");
-            Err(())
-        } else {
-            Ok(Some(()))
+        while let Some((sender, packet)) = i.next() {
+            if let Err(error) = sender.send(packet).await {
+                tracing::warn!(?error, "Failed to send publish to subscription");
+                return Err(()); // TODO
+            }
         }
+        Ok(())
     }
 }
 
-fn topic_matches(topic_a: &MqttTopic, topic_b: &str) -> bool {
-    todo!()
+#[derive(Debug, Clone)]
+struct TopicName(VecDeque<String>);
+
+impl TopicName {
+    fn parse_from(topic: &str) -> TopicName {
+        TopicName(topic.split('/').map(String::from).collect())
+    }
+
+    fn get_matches<'a>(
+        &'a self,
+        idx: usize,
+        routing: &'a SubscriptionTopic,
+    ) -> Box<dyn Iterator<Item = Sender> + 'a> {
+        let multi_wild = routing
+            .children
+            .get(&PatternFragment::MultiWildcard)
+            .into_iter()
+            .flat_map(|child| child.subscriptions.iter().map(Sender::clone))
+            .inspect(|sub| tracing::trace!(?sub, "Matching MultiWildcard topic"));
+
+        let single_wild = routing
+            .children
+            .get(&PatternFragment::SingleWildcard)
+            .into_iter()
+            .flat_map(move |child| self.get_matches(idx + 1, child))
+            .inspect(|sub| tracing::trace!(?sub, "Matching SingleWildcard topic"));
+
+        let nested_named = self
+            .0
+            .get(idx)
+            .and_then(|topic_level| {
+                routing
+                    .children
+                    .get(&PatternFragment::Named(topic_level.to_string()))
+            })
+            .map(move |child| self.get_matches(idx + 1, child));
+
+        let current_named = if idx == self.0.len() {
+            Some(routing.subscriptions.iter().map(Sender::clone))
+        } else {
+            None
+        };
+
+        Box::new(
+            multi_wild
+                .chain(single_wild)
+                .chain(nested_named.into_iter().flatten())
+                .chain(current_named.into_iter().flatten()),
+        )
+    }
 }
