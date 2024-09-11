@@ -4,8 +4,6 @@
 //   file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 
-use std::sync::Arc;
-
 use crate::packets::publish::Publish;
 
 type Receiver = tokio::sync::mpsc::Receiver<Publish>;
@@ -15,24 +13,27 @@ use crate::topic::MqttTopic;
 
 #[derive(Debug)]
 pub(crate) struct Subscription {
-    topic: MqttTopic,
     recv: Receiver,
 }
 
 impl Subscription {
-    fn new(topic: MqttTopic, recv: Receiver) -> Self {
-        Self { topic, recv }
+    fn new(recv: Receiver) -> Self {
+        Self { recv }
     }
 
-    fn matches(&self, topic: &str) -> bool {
-        todo!()
+    pub async fn next(&mut self) -> Option<Publish> {
+        self.recv.recv().await
     }
 }
 
 /// Efficient storage for MQTT Topic -> Subscription mapping
+///
+/// # TODO
+///
+/// Currently this is not implemented in a efficient way
 pub(crate) struct Subscriptions {
     // naive impl
-    subscriptions: Vec<(Arc<Subscription>, Sender)>,
+    subscriptions: Vec<(MqttTopic, Sender)>,
 }
 
 impl Subscriptions {
@@ -42,18 +43,18 @@ impl Subscriptions {
         }
     }
 
-    pub(crate) async fn create_subscription(&mut self, topic: MqttTopic) -> Arc<Subscription> {
+    pub(crate) async fn create_subscription(&mut self, topic: MqttTopic) -> Subscription {
         let (sender, receiver) = tokio::sync::mpsc::channel(10);
-        let sub = Arc::new(Subscription::new(topic, receiver));
-        self.subscriptions.push((sub.clone(), sender));
-        sub
+        self.subscriptions.push((topic, sender));
+        Subscription::new(receiver)
     }
 
     pub(crate) async fn handle_publish(&self, packet: Publish) -> Result<Option<()>, ()> {
+        // naive search
         let Some((_, sender)) = self
             .subscriptions
             .iter()
-            .find(|(subscr, _sender)| subscr.matches(&packet.get().topic_name))
+            .find(|(topic, _sender)| topic_matches(topic, &packet.get().topic_name))
         else {
             return Ok(None);
         };
@@ -65,4 +66,8 @@ impl Subscriptions {
             Ok(Some(()))
         }
     }
+}
+
+fn topic_matches(topic_a: &MqttTopic, topic_b: &str) -> bool {
+    todo!()
 }
