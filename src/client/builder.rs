@@ -13,6 +13,7 @@ use super::send::ClientHandlers;
 use super::send::OnPacketRecvFn;
 use super::send::OnPublishRecvFn;
 use super::send::OnQos1AcknowledgeFn;
+use super::subscriptions::Subscriptions;
 use super::InnerClient;
 use super::MqttClient;
 
@@ -50,6 +51,7 @@ impl MqttClientBuilder {
                     session_state: None,
                     default_handlers: self.handlers,
                     outstanding_callbacks: Callbacks::new(),
+                    subscriptions: Subscriptions::new(),
                 })),
             }
         })
