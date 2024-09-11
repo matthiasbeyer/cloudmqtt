@@ -6,6 +6,7 @@
 
 pub mod builder;
 pub mod connect;
+mod pattern;
 mod receive;
 pub mod send;
 mod state;
@@ -14,6 +15,7 @@ mod subscriptions;
 use std::sync::Arc;
 
 use futures::lock::Mutex;
+use pattern::Pattern;
 use subscriptions::Subscription;
 use subscriptions::Subscriptions;
 
@@ -21,7 +23,6 @@ use self::send::Callbacks;
 use self::send::ClientHandlers;
 use self::state::ConnectState;
 use self::state::SessionState;
-use crate::topic::MqttTopic;
 
 struct InnerClient {
     connection_state: Option<ConnectState>,
@@ -52,12 +53,12 @@ impl MqttClient {
         builder::MqttClientBuilder::new()
     }
 
-    pub async fn subscribe(&self, topic: MqttTopic) -> Subscription {
+    pub async fn subscribe(&self, pattern: Pattern) -> Subscription {
         self.inner
             .lock()
             .await
             .subscriptions
-            .create_subscription(topic)
+            .create_subscription(pattern)
             .await
     }
 }

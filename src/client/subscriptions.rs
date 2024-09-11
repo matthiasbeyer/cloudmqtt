@@ -11,6 +11,8 @@ type Sender = tokio::sync::mpsc::Sender<Publish>;
 
 use crate::topic::MqttTopic;
 
+use super::pattern::Pattern;
+
 #[derive(Debug)]
 pub(crate) struct Subscription {
     recv: Receiver,
@@ -33,7 +35,7 @@ impl Subscription {
 /// Currently this is not implemented in a efficient way
 pub(crate) struct Subscriptions {
     // naive impl
-    subscriptions: Vec<(MqttTopic, Sender)>,
+    subscriptions: Vec<(Pattern, Sender)>,
 }
 
 impl Subscriptions {
@@ -43,18 +45,19 @@ impl Subscriptions {
         }
     }
 
-    pub(crate) async fn create_subscription(&mut self, topic: MqttTopic) -> Subscription {
+    pub(crate) async fn create_subscription(&mut self, pattern: Pattern) -> Subscription {
         let (sender, receiver) = tokio::sync::mpsc::channel(10);
-        self.subscriptions.push((topic, sender));
+        self.subscriptions.push((pattern, sender));
         Subscription::new(receiver)
     }
 
     pub(crate) async fn handle_publish(&self, packet: Publish) -> Result<Option<()>, ()> {
+        let topic = MqttTopic::try_from(packet.get().topic_name).unwrap(); // TODO
         // naive search
         let Some((_, sender)) = self
             .subscriptions
             .iter()
-            .find(|(topic, _sender)| topic_matches(topic, &packet.get().topic_name))
+            .find(|(pattern, _sender)| pattern.matches(&topic))
         else {
             return Ok(None);
         };

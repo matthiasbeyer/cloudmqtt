@@ -37,3 +37,4 @@ yoke = "0.7.4"
 
 [dev-dependencies]
 static_assertions = "1.1.0"
+test-log = { version = "0.2.16", default-features = false, features = ["trace", "color"] }
