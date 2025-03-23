@@ -107,7 +107,6 @@ dependencies = [
  "cloudmqtt-core",
  "dashmap",
  "futures",
- "hakari",
  "mqtt-format",
  "thiserror",
  "tokio",
@@ -121,7 +120,6 @@ dependencies = [
 name = "cloudmqtt-core"
 version = "0.5.0"
 dependencies = [
- "hakari",
  "mqtt-format",
  "rustc-hash",
  "tracing",
@@ -276,23 +274,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "07e28edb80900c19c28f1072f2e8aeca7fa06b23cd4169cefe1af5aa3260783f"
 
 [[package]]
-name = "hakari"
-version = "0.1.0"
-dependencies = [
- "futures-core",
- "futures-sink",
- "num_enum",
- "num_enum_derive",
- "stable_deref_trait",
- "syn",
- "tokio",
- "tracing-core",
- "winnow",
- "yoke",
- "zerofrom",
-]
-
-[[package]]
 name = "hashbrown"
 version = "0.14.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -396,7 +377,6 @@ dependencies = [
  "bytemuck",
  "derive_more",
  "futures",
- "hakari",
  "nom",
  "nom-supreme",
  "num_enum",

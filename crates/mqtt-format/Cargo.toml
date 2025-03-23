@@ -23,7 +23,6 @@ mqttv5 = ["dep:winnow"]
 bytemuck = { workspace = true, features = ["derive"] }
 derive_more = { workspace = true, features = ["from", "try_into"] }
 futures = { workspace = true, optional = true }
-hakari.workspace = true
 nom = { workspace = true, optional = true }
 nom-supreme = { workspace = true, optional = true }
 num_enum = { workspace = true }
