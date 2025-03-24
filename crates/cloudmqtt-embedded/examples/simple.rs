@@ -148,7 +148,7 @@ async fn main(spawner: embassy_executor::Spawner) {
         MQTT_BROKER_PORT
     );
 
-    let client = CloudmqttClient::new(MQTT_BROKER_ADDR, MQTT_BROKER_PORT, SUBSCRIPTIONS, &mqtt_stack_resources) ;
+    let client = CloudmqttClient::new(MQTT_BROKER_ADDR, MQTT_BROKER_PORT, SUBSCRIPTIONS, &mqtt_stack_resources, tcp_socket);
 
     let mut client = match {
         Ok(c) => {
