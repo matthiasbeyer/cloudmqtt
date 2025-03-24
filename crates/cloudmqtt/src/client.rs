@@ -19,7 +19,7 @@ use crate::codec::MqttPacket;
 use crate::codec::MqttPacketCodec;
 
 fn since(start: Instant) -> MqttInstant {
-    MqttInstant::new(start.elapsed().as_secs())
+    MqttInstant::const_new(start.elapsed().as_secs())
 }
 
 pub struct CoreClient {

@@ -39,6 +39,15 @@ pub struct UsizePacketIdentifierStore {
     is_publish: usize,
 }
 
+impl UsizePacketIdentifierStore {
+    pub const fn const_new() -> Self {
+        Self {
+            slots: 0,
+            is_publish: 0,
+        }
+    }
+}
+
 impl PacketIdentifierStore for UsizePacketIdentifierStore {
     fn get_next_free(
         &mut self,

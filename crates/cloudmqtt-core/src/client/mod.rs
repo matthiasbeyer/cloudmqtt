@@ -98,7 +98,7 @@ where
 
 impl Default for MqttClientFSM<UsizePacketIdentifierStore> {
     fn default() -> Self {
-        Self::new(UsizePacketIdentifierStore::default())
+        Self::const_new(UsizePacketIdentifierStore::default())
     }
 }
 
@@ -106,9 +106,9 @@ impl<CPIS> MqttClientFSM<CPIS>
 where
     CPIS: PacketIdentifierStore,
 {
-    pub fn new(client_pis: CPIS) -> MqttClientFSM<CPIS> {
+    pub const fn const_new(client_pis: CPIS) -> MqttClientFSM<CPIS> {
         MqttClientFSM {
-            data: ClientData::default(),
+            data: ClientData::const_new(0, None, MqttInstant::const_new(0)),
             connection_state: ConnectionState::Disconnected,
             client_pis,
         }
@@ -452,7 +452,7 @@ pub struct AcknowledgeAction(mqtt_format::v5::variable_header::PacketIdentifier)
 pub struct MqttInstant(u64);
 
 impl MqttInstant {
-    pub fn new(now: u64) -> MqttInstant {
+    pub const fn const_new(now: u64) -> MqttInstant {
         MqttInstant(now)
     }
 
@@ -472,6 +472,20 @@ pub struct ClientData {
     keep_alive: u16,
     client_id_hash: Option<u64>,
     last_time_run: MqttInstant,
+}
+
+impl ClientData {
+    pub const fn const_new(
+        keep_alive: u16,
+        client_id_hash: Option<u64>,
+        last_time_run: MqttInstant,
+    ) -> Self {
+        Self {
+            keep_alive,
+            client_id_hash,
+            last_time_run,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -513,7 +527,7 @@ mod tests {
         let mut fsm = MqttClientFSM::default();
 
         fsm.handle_connect(
-            crate::client::MqttInstant::new(0),
+            crate::client::MqttInstant::const_new(0),
             mqtt_format::v5::packets::connect::MConnect {
                 client_identifier: "testing",
                 username: None,
@@ -533,7 +547,7 @@ mod tests {
                     properties: mqtt_format::v5::packets::connack::ConnackProperties::new(),
                 },
             ))
-            .run(crate::client::MqttInstant::new(0));
+            .run(crate::client::MqttInstant::const_new(0));
         assert!(action.is_none());
 
         assert!(matches!(
@@ -547,7 +561,7 @@ mod tests {
         let mut fsm = MqttClientFSM::default();
 
         fsm.handle_connect(
-            crate::client::MqttInstant::new(0),
+            crate::client::MqttInstant::const_new(0),
             mqtt_format::v5::packets::connect::MConnect {
                 client_identifier: "testing",
                 username: None,
@@ -567,7 +581,7 @@ mod tests {
                     properties: mqtt_format::v5::packets::connack::ConnackProperties::new(),
                 },
             ))
-            .run(crate::client::MqttInstant::new(0));
+            .run(crate::client::MqttInstant::const_new(0));
         assert!(action.is_none());
 
         assert!(matches!(
@@ -575,13 +589,13 @@ mod tests {
             ConnectionState::Connected { .. }
         ));
 
-        let action = fsm.run(crate::client::MqttInstant::new(5));
+        let action = fsm.run(crate::client::MqttInstant::const_new(5));
         assert!(action.is_none());
 
-        let action = fsm.run(crate::client::MqttInstant::new(9));
+        let action = fsm.run(crate::client::MqttInstant::const_new(9));
         assert!(action.is_none());
 
-        let action = fsm.run(crate::client::MqttInstant::new(10));
+        let action = fsm.run(crate::client::MqttInstant::const_new(10));
         assert!(matches!(
             action,
             Some(ExpectedAction::SendPacket(
@@ -589,17 +603,17 @@ mod tests {
             ))
         ));
 
-        let action = fsm.run(crate::client::MqttInstant::new(12));
+        let action = fsm.run(crate::client::MqttInstant::const_new(12));
         assert!(action.is_none());
 
         let action = fsm
             .consume(mqtt_format::v5::packets::MqttPacket::Pingresp(
                 mqtt_format::v5::packets::pingresp::MPingresp,
             ))
-            .run(crate::client::MqttInstant::new(15));
+            .run(crate::client::MqttInstant::const_new(15));
         assert!(action.is_none());
 
-        let action = fsm.run(crate::client::MqttInstant::new(20));
+        let action = fsm.run(crate::client::MqttInstant::const_new(20));
         assert!(matches!(
             action,
             Some(ExpectedAction::SendPacket(
@@ -607,7 +621,7 @@ mod tests {
             ))
         ));
 
-        let action = fsm.run(crate::client::MqttInstant::new(22));
+        let action = fsm.run(crate::client::MqttInstant::const_new(22));
         assert!(action.is_none());
     }
 
@@ -621,7 +635,7 @@ mod tests {
         let mut fsm = MqttClientFSM::default();
 
         fsm.handle_connect(
-            crate::client::MqttInstant::new(0),
+            crate::client::MqttInstant::const_new(0),
             mqtt_format::v5::packets::connect::MConnect {
                 client_identifier: "testing",
                 username: None,
@@ -641,7 +655,7 @@ mod tests {
                     properties: mqtt_format::v5::packets::connack::ConnackProperties::new(),
                 },
             ))
-            .run(crate::client::MqttInstant::new(0));
+            .run(crate::client::MqttInstant::const_new(0));
         assert!(action.is_none());
 
         assert!(matches!(
@@ -659,7 +673,7 @@ mod tests {
             payload: b"Hello World",
         });
 
-        let action = publisher.run(crate::client::MqttInstant::new(11));
+        let action = publisher.run(crate::client::MqttInstant::const_new(11));
         assert!(
             matches!(
                 action,
@@ -670,10 +684,10 @@ mod tests {
             "Got action: {action:?}"
         );
 
-        let action = publisher.run(crate::client::MqttInstant::new(11));
+        let action = publisher.run(crate::client::MqttInstant::const_new(11));
         assert!(action.is_none(), "Got action: {action:?}");
 
-        let action = fsm.run(crate::client::MqttInstant::new(12));
+        let action = fsm.run(crate::client::MqttInstant::const_new(12));
         assert!(action.is_none(), "Got action: {action:?}");
     }
 
@@ -687,7 +701,7 @@ mod tests {
         let mut fsm = MqttClientFSM::default();
 
         fsm.handle_connect(
-            crate::client::MqttInstant::new(0),
+            crate::client::MqttInstant::const_new(0),
             mqtt_format::v5::packets::connect::MConnect {
                 client_identifier: "testing",
                 username: None,
@@ -707,7 +721,7 @@ mod tests {
                     properties: mqtt_format::v5::packets::connack::ConnackProperties::new(),
                 },
             ))
-            .run(crate::client::MqttInstant::new(0));
+            .run(crate::client::MqttInstant::const_new(0));
         assert!(action.is_none());
 
         assert!(matches!(
@@ -725,13 +739,13 @@ mod tests {
             payload: b"Hello World",
         });
 
-        let action = publisher.run(crate::client::MqttInstant::new(10));
+        let action = publisher.run(crate::client::MqttInstant::const_new(10));
         assert!(
             matches!(action, Some(ExpectedAction::StorePacket { id }) if id.0.get() == 1),
             "Got action: {action:?}"
         );
 
-        let action = publisher.run(crate::client::MqttInstant::new(10));
+        let action = publisher.run(crate::client::MqttInstant::const_new(10));
         assert!(
             matches!(
                 action,
@@ -742,10 +756,10 @@ mod tests {
             "Got action: {action:?}"
         );
 
-        let action = publisher.run(crate::client::MqttInstant::new(11));
+        let action = publisher.run(crate::client::MqttInstant::const_new(11));
         assert!(action.is_none(), "Got action: {action:?}");
 
-        let action = fsm.run(crate::client::MqttInstant::new(12));
+        let action = fsm.run(crate::client::MqttInstant::const_new(12));
         assert!(action.is_none(), "Got action: {action:?}");
 
         let action = fsm
@@ -767,7 +781,7 @@ mod tests {
             "Got action: {action:?}"
         );
 
-        let action = fsm.run(crate::client::MqttInstant::new(12));
+        let action = fsm.run(crate::client::MqttInstant::const_new(12));
         assert!(action.is_none(), "Got action: {action:?}");
     }
 
@@ -781,7 +795,7 @@ mod tests {
         let mut fsm = MqttClientFSM::default();
 
         fsm.handle_connect(
-            crate::client::MqttInstant::new(0),
+            crate::client::MqttInstant::const_new(0),
             mqtt_format::v5::packets::connect::MConnect {
                 client_identifier: "testing",
                 username: None,
@@ -801,7 +815,7 @@ mod tests {
                     properties: mqtt_format::v5::packets::connack::ConnackProperties::new(),
                 },
             ))
-            .run(crate::client::MqttInstant::new(0));
+            .run(crate::client::MqttInstant::const_new(0));
         assert!(action.is_none());
 
         assert!(matches!(
@@ -821,7 +835,7 @@ mod tests {
                     payload: &[],
                 },
             ))
-            .run(crate::client::MqttInstant::new(1));
+            .run(crate::client::MqttInstant::const_new(1));
 
         // match from hell
         assert!(matches!(
@@ -831,7 +845,7 @@ mod tests {
             ))
         ));
 
-        let action = fsm.run(crate::client::MqttInstant::new(2));
+        let action = fsm.run(crate::client::MqttInstant::const_new(2));
         assert!(action.is_none(), "Got action: {action:?}");
 
         let action = fsm
@@ -848,7 +862,7 @@ mod tests {
                     payload: &[],
                 },
             ))
-            .run(crate::client::MqttInstant::new(3));
+            .run(crate::client::MqttInstant::const_new(3));
 
         // match from hell
         let Some(ExpectedAction::ReceivePacket(crate::client::ReceivePacket::AcknowledgeNeeded {
@@ -865,7 +879,7 @@ mod tests {
         ));
         assert!(matches!(acknowledge, crate::client::AcknowledgeAction(pid) if pid.0.get() == 11));
 
-        let action = fsm.acknowledge(crate::client::MqttInstant::new(4), acknowledge);
+        let action = fsm.acknowledge(crate::client::MqttInstant::const_new(4), acknowledge);
         assert!(
             matches!(
                 action,
@@ -874,7 +888,7 @@ mod tests {
             "Got action: {action:?}"
         );
 
-        let action = fsm.run(crate::client::MqttInstant::new(2));
+        let action = fsm.run(crate::client::MqttInstant::const_new(2));
         assert!(action.is_none(), "Got action: {action:?}");
     }
 }
