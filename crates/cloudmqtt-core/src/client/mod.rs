@@ -98,7 +98,7 @@ where
 
 impl Default for MqttClientFSM<UsizePacketIdentifierStore> {
     fn default() -> Self {
-        Self::const_new(UsizePacketIdentifierStore::default())
+        Self::new(UsizePacketIdentifierStore::default())
     }
 }
 
@@ -106,7 +106,7 @@ impl<CPIS> MqttClientFSM<CPIS>
 where
     CPIS: PacketIdentifierStore,
 {
-    pub const fn const_new(client_pis: CPIS) -> MqttClientFSM<CPIS> {
+    pub const fn new(client_pis: CPIS) -> MqttClientFSM<CPIS> {
         MqttClientFSM {
             data: ClientData::const_new(0, None, MqttInstant::const_new(0)),
             connection_state: ConnectionState::Disconnected,
