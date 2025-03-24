@@ -14,6 +14,11 @@ use mqtt_format::v5::qos::QualityOfService;
 use mqtt_format::v5::write::MqttWriteError;
 
 pub mod macros;
+pub mod stack_resources;
+pub mod error;
+
+use crate::error::CloudmqttClientError;
+use crate::stack_resources::MqttStackResources;
 
 pub struct Subscription {
     pub topic: &'static str,
@@ -191,85 +196,6 @@ impl<'c, const SUBSCRIPTIONS_LEN: usize, const RECV_BUF_SIZE: usize, const SEND_
 
 #[derive(Debug)]
 pub struct ConnectedToken(());
-
-#[derive(Debug)]
-pub enum CloudmqttClientError {
-    Connect(embassy_net::tcp::ConnectError),
-    WriteBuf(MqttStackResourceWriteSlotError),
-    ConnectionReset,
-}
-
-pub struct MqttStackResources<const RECV_BUF_SIZE: usize, const SEND_BUF_SIZE: usize> {
-    recv_buf: [(); RECV_BUF_SIZE],
-    send_buf: [MqttStackResourceWriteSlot; SEND_BUF_SIZE],
-}
-
-impl<const RECV_BUF_SIZE: usize, const SEND_BUF_SIZE: usize>
-    MqttStackResources<RECV_BUF_SIZE, SEND_BUF_SIZE>
-{
-    // TODO: Error handling
-    fn get_next_send_buf_mut(&mut self) -> &mut MqttStackResourceWriteSlot {
-        self.send_buf
-            .iter_mut()
-            .find(|s| s.next_write_idx == 0)
-            .unwrap()
-    }
-}
-
-struct MqttStackResourceWriteSlot {
-    next_write_idx: usize,
-    buf: [u8; 1024], // TODO
-}
-
-impl MqttStackResourceWriteSlot {
-    fn new() -> Self {
-        Self {
-            next_write_idx: 0,
-            buf: [0; 1024],
-        }
-    }
-
-    fn clear(&mut self) {
-        self.next_write_idx = 0;
-    }
-
-    fn as_slice(&self) -> &[u8] {
-        &self.buf[0..self.next_write_idx]
-    }
-}
-
-#[derive(Debug)]
-pub enum MqttStackResourceWriteSlotError {
-    Invariant,
-}
-
-impl From<MqttWriteError> for MqttStackResourceWriteSlotError {
-    fn from(_value: MqttWriteError) -> Self {
-        Self::Invariant
-    }
-}
-
-impl mqtt_format::v5::write::WriteMqttPacket for MqttStackResourceWriteSlot {
-    type Error = MqttStackResourceWriteSlotError;
-
-    fn write_byte(&mut self, u: u8) -> mqtt_format::v5::write::WResult<Self> {
-        self.buf[self.next_write_idx] = u;
-        self.next_write_idx += 1;
-        Ok(())
-    }
-
-    fn write_slice(&mut self, u: &[u8]) -> mqtt_format::v5::write::WResult<Self> {
-        for i in u {
-            self.write_byte(*i)?;
-        }
-        Ok(())
-    }
-
-    #[cfg(test)]
-    fn len(&self) -> usize {
-        self.buf.len()
-    }
-}
 
 #[derive(Debug)]
 pub enum PublishResult {
