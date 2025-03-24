@@ -16,9 +16,11 @@ use mqtt_format::v5::write::MqttWriteError;
 pub mod macros;
 pub mod stack_resources;
 pub mod error;
+pub mod token;
 
 use crate::error::CloudmqttClientError;
 use crate::stack_resources::MqttStackResources;
+use crate::token::ConnectedToken;
 
 pub struct Subscription {
     pub topic: &'static str,
@@ -193,9 +195,6 @@ impl<'c, const SUBSCRIPTIONS_LEN: usize, const RECV_BUF_SIZE: usize, const SEND_
         }
     }
 }
-
-#[derive(Debug)]
-pub struct ConnectedToken(());
 
 #[derive(Debug)]
 pub enum PublishResult {

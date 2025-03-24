@@ -12,6 +12,7 @@ generic-array = "1.2"
 thiserror = { version = "2.0.11", default-features = false }
 mqtt-format = { workspace = true, features = ["yoke"] }
 cloudmqtt-core = { workspace = true }
+static_assertions = "1.1"
 
 cortex-m = { version = "0.7.6", features = ["inline-asm"] }
 cortex-m-rt = "0.7.0"
