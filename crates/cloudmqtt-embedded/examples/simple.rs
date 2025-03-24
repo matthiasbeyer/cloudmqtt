@@ -12,6 +12,8 @@ use cloudmqtt_embedded::Subscription;
 use cloudmqtt_embedded::macros::subscription;
 use cyw43_pio::PioSpi;
 use embassy_net::StackResources;
+use embassy_net::tcp::TcpSocket;
+use embassy_net::dns::DnsQueryType;
 use embassy_rp::gpio::Output;
 use embassy_time::Timer;
 use mqtt_format::v5::qos::QualityOfService;
@@ -111,7 +113,44 @@ async fn main(spawner: embassy_executor::Spawner) {
     network_stack.wait_config_up().await;
     defmt::info!("Stack is up!");
 
-    let mut client = match CloudmqttClient::start(MQTT_BROKER_ADDR, MQTT_BROKER_PORT, SUBSCRIPTIONS).await {
+    let mqtt_stack_resources: MqttStackResources<10, 10> = MqttStackResources::new();
+
+    let mut tcp_socket = TcpSocket::new(
+        network_stack,
+        &mut mqtt_stack_resources.rx_buffer,
+        &mut mqtt_stack_resources.tx_buffer,
+    );
+    tcp_socket.set_timeout(Some(embassy_time::Duration::from_secs(10)));
+    tcp_socket.set_keep_alive(Some(embassy_time::Duration::from_secs(5)));
+
+    let addrs = network_stack
+        .dns_query(MQTT_BROKER_ADDR, DnsQueryType::A)
+        .await
+        .map_err(|error| {
+            defmt::error!(
+                "Failed to run DNS query for {}: {:?}",
+                MQTT_BROKER_ADDR,
+                error
+            );
+
+            MqttClientError::RunDns(error)
+        })?;
+
+    if addrs.is_empty() {
+        defmt::error!("Failed to resolve DNS {}", MQTT_BROKER_ADDR);
+        return Err(MqttClientError::ResolveDns);
+    }
+
+    let mqtt_addr = addrs[0];
+    defmt::info!(
+        "connecting to MQTT Broker: {}:{}",
+        mqtt_addr,
+        MQTT_BROKER_PORT
+    );
+
+    let client = CloudmqttClient::new(MQTT_BROKER_ADDR, MQTT_BROKER_PORT, SUBSCRIPTIONS, &mqtt_stack_resources) ;
+
+    let mut client = match {
         Ok(c) => {
             defmt::info!("MQTT Client started successfully");
             c
