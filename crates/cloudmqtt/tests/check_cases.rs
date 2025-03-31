@@ -35,9 +35,13 @@ fn setup_test_dsl() -> test_dsl::TestDsl<TestHarness> {
 
     ts.add_verb(
         "connect_to_broker",
-        FunctionVerb::new(|harness: &mut TestHarness, client_name: String, broker_name: String| {
-            harness.connect_client_to_broker(client_name, broker_name).into_diagnostic()
-        }),
+        FunctionVerb::new(
+            |harness: &mut TestHarness, client_name: String, broker_name: String| {
+                harness
+                    .connect_client_to_broker(client_name, broker_name)
+                    .into_diagnostic()
+            },
+        ),
     );
 
     ts
