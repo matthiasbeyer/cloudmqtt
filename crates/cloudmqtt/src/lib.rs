@@ -158,7 +158,7 @@ impl SubscriptionBuilder<'_> {
         self
     }
 
-    pub async fn build(self) -> Subscription {
+    pub async fn build(self) -> Result<Subscription, Error> {
         let buf = {
             let mut bytes = BytesMut::new();
 
@@ -194,7 +194,7 @@ impl SubscriptionBuilder<'_> {
                     },
                 ),
             ))
-            .await;
+            .await?;
 
         let (sender, receiver) = tokio::sync::mpsc::channel(1);
         let subscription_id = self.client.router.add_subscription_sink(sender);
@@ -205,9 +205,9 @@ impl SubscriptionBuilder<'_> {
                 .add_subscription_to_topic(subscription_id, topic_filter.as_ref());
         }
 
-        Subscription {
+        Ok(Subscription {
             _subscription_id: subscription_id,
             receiver,
-        }
+        })
     }
 }
