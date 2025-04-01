@@ -130,7 +130,8 @@ impl Broker {
         client_name: &str,
         func: F,
     ) -> Result<bool, TestHarnessError>
-    where F: Fn(&crate::codec::MqttPacket) -> bool
+    where
+        F: Fn(&crate::codec::MqttPacket) -> bool,
     {
         let Some(packets) = self
             .connections
