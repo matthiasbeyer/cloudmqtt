@@ -27,6 +27,7 @@ let
         (craneLib.fileset.commonCargoSources ../crates/mqtt-format)
         (craneLib.fileset.commonCargoSources ../crates/cloudmqtt-core)
         (craneLib.fileset.commonCargoSources crate)
+        (lib.fileset.fileFilter (f: f.hasExt "kdl") crate)
       ];
     };
 in
