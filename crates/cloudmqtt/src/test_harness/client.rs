@@ -6,8 +6,6 @@
 
 use std::sync::Arc;
 
-use futures::channel::mpsc;
-
 use super::broker::Broker;
 use super::error::TestHarnessError;
 use crate::codec::MqttPacket;
