@@ -38,7 +38,14 @@ impl Client {
         Ok(())
     }
 
-    pub(crate) async fn publish(&mut self, payload: impl AsRef<[u8]>, topic: impl AsRef<str>) -> Result<(), TestHarnessError> {
-        self.client.publish(payload, topic).await.map_err(TestHarnessError::Client)
+    pub(crate) async fn publish(
+        &mut self,
+        payload: impl AsRef<[u8]>,
+        topic: impl AsRef<str>,
+    ) -> Result<(), TestHarnessError> {
+        self.client
+            .publish(payload, topic)
+            .await
+            .map_err(TestHarnessError::Client)
     }
 }
