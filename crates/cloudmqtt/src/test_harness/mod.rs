@@ -134,7 +134,7 @@ impl TestHarness {
                 ) => {
                     if *topic_name != expected_topic {
                         tracing::warn!("Unexpected topic: {topic_name} != {expected_topic}");
-                        return false
+                        return false;
                     }
 
                     let Ok(payload) = std::str::from_utf8(payload) else {
