@@ -81,6 +81,7 @@ impl Broker {
         match next {
             Ok(packet) => {
                 if *packet.get_packet() == expected_packet {
+                    tracing::trace!("Packet as expected");
                     Ok(())
                 } else {
                     Err(TestHarnessError::PacketNotExpected {
