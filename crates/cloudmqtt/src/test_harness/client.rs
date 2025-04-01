@@ -8,7 +8,6 @@ use std::sync::Arc;
 
 use super::broker::Broker;
 use super::error::TestHarnessError;
-use crate::codec::MqttPacket;
 
 pub(crate) struct Client {
     client: Arc<crate::CloudmqttClient>,
