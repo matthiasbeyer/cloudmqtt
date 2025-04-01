@@ -27,4 +27,7 @@ pub enum TestHarnessError {
 
     #[error("Received not expected packet: '{:?}'", .got)]
     PacketNotExpected { got: crate::codec::MqttPacket },
+
+    #[error("Unexpected client identifier: got {}, expected {}", .got, .expected)]
+    UnexpectedClientIdentifier { got: String, expected: String },
 }
