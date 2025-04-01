@@ -26,7 +26,6 @@ impl Client {
     pub(crate) fn new(name: String) -> Self {
         Self {
             client: Arc::new(crate::CloudmqttClient::new()),
-            sender: None,
             name,
         }
     }
