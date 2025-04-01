@@ -59,7 +59,7 @@ impl CoreClient {
 
         let state_arc = connection_state.clone();
         let incoming_sender_clone = incoming_sender.clone();
-        let _ = tokio::task::spawn(async move {
+        tokio::task::spawn(async move {
             let fsm = MqttClientFSM::default();
 
             let mut fsm =
