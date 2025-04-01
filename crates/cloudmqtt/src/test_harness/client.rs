@@ -11,7 +11,6 @@ use super::error::TestHarnessError;
 
 pub(crate) struct Client {
     client: Arc<crate::CloudmqttClient>,
-    sender: Option<mpsc::UnboundedSender<Result<MqttPacket, crate::codec::MqttPacketCodecError>>>,
     name: String,
 }
 
