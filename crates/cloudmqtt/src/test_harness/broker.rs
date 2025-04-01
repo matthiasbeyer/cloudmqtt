@@ -88,7 +88,10 @@ impl Broker {
                     Err(TestHarnessError::PacketNotExpected { got: packet })
                 }
             }
-            Err(error) => Err(TestHarnessError::Codec(error)),
+            Err(error) => {
+                tracing::warn!("Codec error");
+                Err(TestHarnessError::Codec(error))
+            }
         }
     }
 }
