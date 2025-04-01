@@ -14,7 +14,7 @@ pub mod error;
 pub struct TestHarness {
     brokers: HashMap<String, broker::Broker>,
     clients: HashMap<String, client::Client>,
-    runtime: tokio::runtime::Handle,
+    runtime: tokio::runtime::Runtime,
 }
 
 impl Default for TestHarness {
@@ -25,7 +25,10 @@ impl Default for TestHarness {
 
 impl TestHarness {
     pub fn new() -> Self {
-        let runtime = tokio::runtime::Handle::current();
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
 
         Self {
             brokers: HashMap::default(),
@@ -41,6 +44,7 @@ impl TestHarness {
     }
 
     pub fn create_client(&mut self, name: String) -> Result<(), error::TestHarnessError> {
+        let _rt = self.runtime.enter();
         let client = client::Client::new(name.clone());
         self.clients.insert(name, client);
         Ok(())
