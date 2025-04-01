@@ -139,7 +139,7 @@ impl TestHarness {
 
                     let Ok(payload) = std::str::from_utf8(payload) else {
                         tracing::warn!("Payload not valid UTF8");
-                        return false
+                        return false;
                     };
 
                     if payload != expected_payload {
