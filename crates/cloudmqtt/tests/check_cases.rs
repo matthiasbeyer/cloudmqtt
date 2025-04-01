@@ -5,7 +5,6 @@
 //
 
 use std::str::FromStr;
-use std::time::Duration;
 
 use camino::Utf8Path;
 use cloudmqtt::test_harness::TestHarness;
