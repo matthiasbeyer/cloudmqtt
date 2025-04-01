@@ -146,7 +146,7 @@ impl Broker {
 
         for p in packets.lock().await.iter() {
             if func(p) {
-                return Ok(true)
+                return Ok(true);
             }
         }
 
