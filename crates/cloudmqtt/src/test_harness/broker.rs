@@ -84,9 +84,8 @@ impl Broker {
                     tracing::trace!("Packet as expected");
                     Ok(())
                 } else {
-                    Err(TestHarnessError::PacketNotExpected {
-                        got: packet,
-                    })
+                    tracing::warn!(expected = ?expected_packet, received = ?packet, "Packet not as expected");
+                    Err(TestHarnessError::PacketNotExpected { got: packet })
                 }
             }
             Err(error) => Err(TestHarnessError::Codec(error)),
