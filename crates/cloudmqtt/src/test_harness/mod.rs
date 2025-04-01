@@ -144,7 +144,7 @@ impl TestHarness {
 
                     if payload != expected_payload {
                         tracing::warn!("Unexpected payload: {payload} != {expected_payload}");
-                        return false
+                        return false;
                     }
 
                     true
