@@ -71,6 +71,7 @@ impl Broker {
             tracing::warn!(name = ?client_name, "Failed to find client");
             return Err(TestHarnessError::ClientNotFound(client_name.to_string()));
         };
+        tracing::debug!(name = ?client_name, "Client found, fetching next packet");
 
         let Some(next) = r.value_mut().connection.next().await else {
             return Err(TestHarnessError::StreamClosed(client_name.to_string()));
