@@ -169,7 +169,9 @@ impl TestHarness {
                 }
             }
 
-            _other => Err(TestHarnessError::PacketNotExpected { got: Box::new(packet) }),
+            _other => Err(TestHarnessError::PacketNotExpected {
+                got: Box::new(packet),
+            }),
         }
     }
 }
