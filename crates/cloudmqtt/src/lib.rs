@@ -107,7 +107,7 @@ impl CloudmqttClient {
             .await
     }
 
-    pub async fn subscribe(&self, topic_filter: impl AsRef<str>) -> Subscription {
+    pub async fn subscribe(&self, topic_filter: impl AsRef<str>) -> Result<Subscription, Error> {
         self.subscription_builder()
             .with_subscription(topic_filter)
             .build()
