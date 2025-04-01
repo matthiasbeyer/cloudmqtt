@@ -158,7 +158,7 @@ impl TestHarness {
             Ok(false) => {
                 todo!()
             }
-            Err(error) => Err(error)
+            Err(error) => Err(error),
         }
     }
 
