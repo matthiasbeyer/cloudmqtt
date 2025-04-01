@@ -68,6 +68,7 @@ impl Broker {
         expected_packet: mqtt_format::v5::packets::MqttPacket<'_>,
     ) -> Result<(), TestHarnessError> {
         let Some(mut r) = self.connections.get_mut(client_name) else {
+            tracing::warn!(name = ?client_name, "Failed to find client");
             return Err(TestHarnessError::ClientNotFound(client_name.to_string()));
         };
 
