@@ -37,4 +37,8 @@ impl Client {
         broker.connect(self.name.clone(), server).await.unwrap();
         Ok(())
     }
+
+    pub(crate) async fn publish(&mut self, payload: impl AsRef<[u8]>, topic: impl AsRef<str>) -> Result<(), TestHarnessError> {
+        self.client.publish(payload, topic).await.map_err(TestHarnessError::Client)
+    }
 }
