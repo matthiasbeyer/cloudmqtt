@@ -74,6 +74,7 @@ impl Broker {
         tracing::debug!(name = ?client_name, "Client found, fetching next packet");
 
         let Some(next) = r.value_mut().connection.next().await else {
+            tracing::warn!(name = ?client_name, "Stream to client closed");
             return Err(TestHarnessError::StreamClosed(client_name.to_string()));
         };
 
