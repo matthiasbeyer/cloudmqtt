@@ -131,7 +131,7 @@ impl Broker {
         func: F,
     ) -> Result<bool, TestHarnessError>
     where
-        F: Fn(&crate::codec::MqttPacket) -> bool,
+        F: Fn(&crate::codec::MqttPacket) -> Result<bool, TestHarnessError>,
     {
         let Some(packets) = self
             .connections
@@ -144,8 +144,9 @@ impl Broker {
 
         tracing::debug!(name = ?client_name, "Client found, fetching next packet");
 
-        for p in packets.lock().await.iter() {
-            if func(p) {
+        for packet in packets.lock().await.iter() {
+            tracing::trace!(?packet, "Testing assertion on packet");
+            if func(packet)? {
                 return Ok(true);
             }
         }
