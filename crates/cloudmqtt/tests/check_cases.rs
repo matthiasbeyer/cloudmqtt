@@ -101,7 +101,8 @@ fn setup_test_dsl() -> test_dsl::TestDsl<TestHarness> {
                 match harness.check_for_publish_on_broker(broker_name, client_name, payload, topic) {
                     Err(cloudmqtt::test_harness::error::TestHarnessError::PacketNotExpected {
                         got: _,
-                    }) => Ok(false),
+                match harness.check_for_publish_on_broker(broker_name, client_name, payload, topic)
+                {
                     other => other.into_diagnostic(),
                 }
             },
