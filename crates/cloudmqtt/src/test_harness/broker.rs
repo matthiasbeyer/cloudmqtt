@@ -53,6 +53,7 @@ impl Broker {
             async move {
                 loop {
                     let packet = packet_receiver.recv().await;
+                    tracing::trace!(?packet, "Received packet on broker");
                     match packet {
                         Ok(p) => rpacks.lock().await.push(p),
                         Err(error) => tracing::warn!(?error),
