@@ -37,12 +37,6 @@ pub enum TestHarnessError {
     #[error("Unexpected topic, expected: {}, found: {}", .expected, .found)]
     UnexpectedTopic { expected: String, found: String },
 
-    #[error("Unexpected packet type: expected {}, found {}", .expected, .found.mqtt_packet_type_name())]
-    UnexpectedPacketType {
-        expected: String,
-        found: crate::codec::MqttPacket,
-    },
-
     #[error("Packet payload is not valid UTF8")]
     PayloadNotUtf8,
 }
