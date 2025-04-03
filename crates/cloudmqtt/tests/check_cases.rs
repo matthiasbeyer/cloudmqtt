@@ -63,17 +63,15 @@ fn setup_test_dsl() -> test_dsl::TestDsl<TestHarness> {
 
     ts.add_verb(
         "publish_to_client",
-        test_dsl::named_parameters_verb!(
-            |harness: &mut TestHarness,
-             broker: String,
-             client: String,
-             payload: String,
-             topic: String| {
-                harness
-                    .publish_to_client(broker, client, payload, topic)
-                    .into_diagnostic()
-            },
-        ),
+        test_dsl::named_parameters_verb!(|harness: &mut TestHarness,
+                                          broker: String,
+                                          client: String,
+                                          payload: String,
+                                          topic: String| {
+            harness
+                .publish_to_client(broker, client, payload, topic)
+                .into_diagnostic()
+        },),
     );
 
     ts.add_condition(
