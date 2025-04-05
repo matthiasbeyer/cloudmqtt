@@ -33,9 +33,14 @@ crate::v5::reason_code::make_combined_reason_code! {
 }
 
 impl SubackReasonCode {
-    /// Return whether reason code is granted
-    pub fn is_granted(&self) -> bool {
-        *self == Self::GrantedQoS0 || *self == Self::GrantedQoS1 || *self == Self::GrantedQoS2
+    /// Return Some(_) if self is a "Granted" reason code, otherwise None
+    pub fn granted(&self) -> Option<Self> {
+        match self {
+            SubackReasonCode::GrantedQoS0
+            | SubackReasonCode::GrantedQoS1
+            | SubackReasonCode::GrantedQoS2 => Some(*self),
+            _ => None,
+        }
     }
 }
 
