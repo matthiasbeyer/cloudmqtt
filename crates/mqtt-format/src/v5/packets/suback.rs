@@ -32,6 +32,13 @@ crate::v5::reason_code::make_combined_reason_code! {
     }
 }
 
+impl SubackReasonCode {
+    /// Return whether reason code is granted
+    pub fn is_granted(&self) -> bool {
+        *self == Self::GrantedQoS0 || *self == Self::GrantedQoS1 || *self == Self::GrantedQoS2
+    }
+}
+
 crate::v5::properties::define_properties! {
     packet_type: MSuback,
     anker: "_Toc3901174",
