@@ -30,7 +30,6 @@ paste.workspace = true
 thiserror = { workspace = true, optional = true }
 winnow = { workspace = true, optional = true }
 yoke = { workspace = true, features = ["derive"], optional = true }
-cloudmqtt-workspace-hack.workspace = true
 
 [dev-dependencies]
 pretty_assertions.workspace = true

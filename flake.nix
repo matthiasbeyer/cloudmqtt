@@ -65,7 +65,6 @@
             pkgs.cargo-expand
             pkgs.cargo-bloat
             pkgs.cargo-fuzz
-            pkgs.cargo-hakari
             pkgs.cargo-nextest
 
             pkgs.gitlint

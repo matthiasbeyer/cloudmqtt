@@ -26,7 +26,6 @@ let
     lib.fileset.unions [
       ../Cargo.lock
       ../Cargo.toml
-      (craneLib.fileset.commonCargoSources ../crates/workspace-hack)
       (craneLib.fileset.commonCargoSources ../crates/mqtt-format)
       (craneLib.fileset.commonCargoSources ../crates/cloudmqtt-core)
       (craneLib.fileset.commonCargoSources crate)
@@ -82,22 +81,5 @@ in
         };
       }
     );
-
-    workspace-hakari = craneLib.mkCargoDerivation {
-      inherit src;
-      pname = "workspace-hakari";
-      cargoArtifacts = null;
-      doInstallCargoArtifacts = false;
-
-      buildPhaseCargoCommand = ''
-        cargo hakari generate --diff  # workspace-hack Cargo.toml is up-to-date
-        cargo hakari manage-deps --dry-run  # all workspace crates depend on workspace-hack
-        cargo hakari verify
-      '';
-
-      nativeBuildInputs = [
-        pkgs.cargo-hakari
-      ];
-    };
   };
 }
